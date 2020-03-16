@@ -87,3 +87,4 @@ Put the resulting `essh` binary somewhere in your `$PATH`.
 
 - Exit with the ssh command exit code
 - Lookup instance by `tag:Name` in addition to `instance-id`
+- Create binary releases for popular platforms/architectures
