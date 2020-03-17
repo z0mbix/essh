@@ -17,13 +17,13 @@ SSH to EC2 instances using in memory, ephemeral ssh keys and EC2 instance connec
 
 As `essh` uses AWS APIs, you will need you have valid credentials configured. If you're using this tool, then I'm presuming that you know how to do this, if not [see here](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html).
 
-You should set the region
+You should set the region with the `-r`/`--region` flag, or by setting the environment variable `AWS_DEFAULT_REGION`
 
 # Usage
 
 ```
 $ essh --help
-Usage of ./essh:
+Usage of essh:
   -d, --debug             Enable debug logging
   -r, --region string     AWS Region
   -p, --use-public-ip     Use the public ip instead of the private ip address
