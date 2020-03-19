@@ -3,7 +3,7 @@
 SSH to EC2 instances using in memory, ephemeral ssh keys and EC2 instance connect
 
 
-# Description
+## Description
 
 `essh` does the following:
 
@@ -13,13 +13,14 @@ SSH to EC2 instances using in memory, ephemeral ssh keys and EC2 instance connec
 - `ssh` to the instance using the private IP address (public IP can be used with `-p`), using user `ec2-user` by default
 
 
-# Requirements
+## Requirements
 
 As `essh` uses AWS APIs, you will need you have valid credentials configured. If you're using this tool, then I'm presuming that you know how to do this, if not [see here](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html).
 
 You should set the region with the `-r`/`--region` flag, or by setting the environment variable `AWS_DEFAULT_REGION`
 
-# Usage
+
+## Usage
 
 ```
 $ essh --help
@@ -49,7 +50,14 @@ Connect as user `ubuntu` passing the flags `-A`, `-4` and the command `uptime` t
 $ essh -u ubuntu i-02fab0d7dd3ab737b -- -A -4 uptime
 ```
 
-## Example
+Connect to an instance's by its name tag:
+
+```
+$ essh prod-web1
+```
+
+
+## Examples
 
 Run with debug logging enabled:
 
@@ -74,6 +82,22 @@ Run "sudo yum update" to apply all updates.
 [ec2-user@ip-10-200-3-25 ~]$
 ```
 
+Run with debug logging enabled, connect to the instance named "prod-web1" on its public ip address and run `uptime`:
+
+```
+$ essh -d -p prod-web1 -- uptime
+DEBU[2020-03-19T16:42:38.920] aws region not set, trying AWS_DEFAULT_REGION environment variable
+DEBU[2020-03-19T16:42:38.920] aws region found in AWS_DEFAULT_REGION environment variable: eu-west-1
+DEBU[2020-03-19T16:42:38.920] using Name tag prod-web1 to find instance id
+DEBU[2020-03-19T16:42:39.711] found instance id: i-0cc2be02456a7180c
+DEBU[2020-03-19T16:42:39.770] looking up ip of: prod-web1
+DEBU[2020-03-19T16:42:39.939] adding key to agent
+DEBU[2020-03-19T16:42:39.940] host: 52.51.41.123
+DEBU[2020-03-19T16:42:39.940] pushing public key to instance
+INFO[2020-03-19T16:42:40.681] running command: ssh -l ec2-user 52.51.41.123 uptime
+ 16:42:42 up 16 min,  0 users,  load average: 0.13, 0.04, 0.01
+```
+
 ## Build
 
 ```
@@ -86,5 +110,9 @@ Put the resulting `essh` binary somewhere in your `$PATH`.
 ## TODO
 
 - Exit with the ssh command exit code
-- Lookup instance by `tag:Name` in addition to `instance-id`
 - Create binary releases for popular platforms/architectures
+
+
+## License
+
+The project is open-source software licensed under the [MIT license](http://opensource.org/licenses/MIT).
