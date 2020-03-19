@@ -49,16 +49,26 @@ func main() {
 		instanceID = sshHost
 	}
 
-	if !hasInstanceID {
-		log.Fatal("name lookup not yet supported")
-	}
-
-	ins, err := NewAwsInstance(awsRegion, instanceID)
+	sess, err := NewAwsSession(awsRegion)
 	if err != nil {
 		log.Fatalf("could not get instance/session: %s", err)
 	}
 
-	log.Debugf("looking up ip of instance id: %s", sshHost)
+	if !hasInstanceID {
+		log.Debugf("using Name tag %s to find instance id", sshHost)
+		instanceID, err = getInstanceIDFromNameTag(sess, sshHost)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Debugf("found instance id: %s", instanceID)
+	}
+
+	ins, err := NewAwsInstance(sess, instanceID)
+	if err != nil {
+		log.Fatalf("could not get instance/session: %s", err)
+	}
+
+	log.Debugf("looking up ip of: %s", sshHost)
 	sshHost, err = ins.IP(*usePublicIP)
 	if err != nil {
 		log.Fatalf("could not find instance ip address: %s", err)
