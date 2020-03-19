@@ -50,7 +50,7 @@ Connect as user `ubuntu` passing the flags `-A`, `-4` and the command `uptime` t
 $ essh -u ubuntu i-02fab0d7dd3ab737b -- -A -4 uptime
 ```
 
-Connect to an instance's by its name tag:
+Connect to an instance by its name tag:
 
 ```
 $ essh prod-web1
