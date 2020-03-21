@@ -22,8 +22,10 @@ func main() {
 	}
 
 	log.SetFormatter(&log.TextFormatter{
-		TimestampFormat: "2006-01-02T15:04:05.000",
-		FullTimestamp:   true,
+		TimestampFormat:        "2006-01-02T15:04:05.000",
+		DisableTimestamp:       true,
+		FullTimestamp:          true,
+		DisableLevelTruncation: true,
 	})
 
 	var instanceID string
@@ -38,6 +40,11 @@ func main() {
 			log.Fatal("please set the region using the -r/--region flag or the AWS_DEFAULT_REGION environment variable")
 		}
 		log.Debugf("aws region found in AWS_DEFAULT_REGION environment variable: %s", awsRegion)
+	}
+
+	if len(flag.Args()) < 1 {
+		flag.Usage()
+		log.Fatal("You need to specify either an instance id, or a EC2 tag Name")
 	}
 
 	sshHost := flag.Arg(0)
