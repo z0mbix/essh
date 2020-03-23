@@ -5,21 +5,14 @@ import (
 	"os"
 	"strings"
 
+	"github.com/davecgh/go-spew/spew"
 	log "github.com/sirupsen/logrus"
 	flag "github.com/spf13/pflag"
 )
 
 func main() {
-	userName := flag.StringP("username", "u", "ec2-user", "UNIX user name")
-	region := flag.StringP("region", "r", "", "AWS Region")
-	usePublicIP := flag.BoolP("use-public-ip", "p", false, "Use the public ip instead of the private ip address")
-	debug := flag.BoolP("debug", "d", false, "Enable debug logging")
-	flag.Parse()
 
 	log.SetLevel(log.InfoLevel)
-	if *debug {
-		log.SetLevel(log.DebugLevel)
-	}
 
 	log.SetFormatter(&log.TextFormatter{
 		TimestampFormat:        "2006-01-02T15:04:05.000",
@@ -28,19 +21,28 @@ func main() {
 		DisableLevelTruncation: true,
 	})
 
+	config, err := getESSHConfig()
+
+	if err != nil {
+		fmt.Println("Failed to parse config...")
+	}
+
 	var instanceID string
 	var hasInstanceID bool
 
-	awsRegion := *region
-	if awsRegion == "" {
-		log.Debug("aws region not set, trying AWS_DEFAULT_REGION environment variable")
-		awsRegion = os.Getenv("AWS_DEFAULT_REGION")
-		if awsRegion == "" {
-			log.Debug("aws region not found in AWS_DEFAULT_REGION environment variable")
-			log.Fatal("please set the region using the -r/--region flag or the AWS_DEFAULT_REGION environment variable")
-		}
-		log.Debugf("aws region found in AWS_DEFAULT_REGION environment variable: %s", awsRegion)
-	}
+	spew.Dump(config)
+	os.Exit(1)
+
+	// awsRegion := *region
+	// if awsRegion == "" {
+	// 	log.Debug("aws region not set, trying AWS_DEFAULT_REGION environment variable")
+	// 	awsRegion = os.Getenv("AWS_DEFAULT_REGION")
+	// 	if awsRegion == "" {
+	// 		log.Debug("aws region not found in AWS_DEFAULT_REGION environment variable")
+	// 		log.Fatal("please set the region using the -r/--region flag or the AWS_DEFAULT_REGION environment variable")
+	// 	}
+	// 	log.Debugf("aws region found in AWS_DEFAULT_REGION environment variable: %s", awsRegion)
+	// }
 
 	if len(flag.Args()) < 1 {
 		flag.Usage()
@@ -48,7 +50,7 @@ func main() {
 	}
 
 	sshHost := flag.Arg(0)
-	sshArgs := []string{"-l", *userName}
+	sshArgs := []string{"-l", config.UserName}
 	sshExtraArgs := flag.Args()[1:len(flag.Args())]
 
 	if strings.HasPrefix(sshHost, "i-") {
@@ -56,7 +58,7 @@ func main() {
 		instanceID = sshHost
 	}
 
-	sess, err := NewAwsSession(awsRegion)
+	sess, err := NewAwsSession(config.Region)
 	if err != nil {
 		log.Fatalf("could not get instance/session: %s", err)
 	}
@@ -76,7 +78,7 @@ func main() {
 	}
 
 	log.Debugf("looking up ip of: %s", sshHost)
-	sshHost, err = ins.IP(*usePublicIP)
+	sshHost, err = ins.IP(config.ConnectPublicIP)
 	if err != nil {
 		log.Fatalf("could not find instance ip address: %s", err)
 	}
@@ -91,7 +93,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	comment := fmt.Sprintf("%s:%s", *userName, instanceID)
+	comment := fmt.Sprintf("%s:%s", config.UserName, instanceID)
 	err = sshAgent.addKey(sshKeyPair.private, comment)
 	if err != nil {
 		log.Fatal(err)
@@ -103,7 +105,7 @@ func main() {
 	log.Debugf("host: %s", sshHost)
 
 	log.Debug("pushing public key to instance")
-	err = ins.sendPublicKey(*userName, string(sshKeyPair.public))
+	err = ins.sendPublicKey(config.UserName, string(sshKeyPair.public))
 	if err != nil {
 		log.Fatal(err)
 	}
