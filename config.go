@@ -1,10 +1,20 @@
 package main
 
 import (
+	"fmt"
 	"os"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 	flag "github.com/spf13/pflag"
+)
+
+type SearchMode int
+
+const (
+	SearchModeMenu SearchMode = 1 << iota
+	SearchModeInst
+	SearchModeTag
 )
 
 type ESSHConfig struct {
@@ -12,7 +22,12 @@ type ESSHConfig struct {
 	Region          string
 	ConnectPublicIP bool
 	Debug           bool
-	InstanceID      string
+
+	SearchMode SearchMode
+
+	//Search value will either be a instance id or tag, check SearchMode to find out what
+	SearchValue  string
+	sshExtraArgs []string
 }
 
 func defaultConfig() *ESSHConfig {
@@ -48,12 +63,36 @@ func getESSHConfig() (*ESSHConfig, error) {
 		if config.Region == "" {
 			config.Region = os.Getenv("AWS_DEFAULT_REGION")
 		}
-		//TODO: Add error, no region, cannot contunue
+		log.Fatal("count not find your AWS region from either -r or env vars AWS_REGION, AWS_DEFAULT_REGION")
 	}
 
 	config.ConnectPublicIP = *usePublicIP
 
+	//Now work out posistional args
+
 	//TODO: check nargs for pos args
+	if flag.NArg() == 0 {
+		config.SearchMode = SearchModeMenu
+	}
+
+	// inst id or tag
+	if flag.NArg() > 0 {
+		fmt.Println("inst id or tag")
+		config.SearchValue = flag.Arg(0)
+		if strings.HasPrefix(config.SearchValue, "i-") {
+			config.SearchMode = SearchModeInst
+		} else {
+			config.SearchMode = SearchModeTag
+		}
+	}
+
+	//commands to pass on to ssh, check for --
+	if flag.NArg() > 1 {
+		sep := flag.Arg(1)
+		if sep == "--" {
+			config.sshExtraArgs = flag.Args()[1:flag.NArg()]
+		}
+	}
 
 	return config, nil
 }
