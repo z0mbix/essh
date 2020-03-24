@@ -2,10 +2,8 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
 	log "github.com/sirupsen/logrus"
 	flag "github.com/spf13/pflag"
 )
@@ -29,9 +27,6 @@ func main() {
 
 	var instanceID string
 	var hasInstanceID bool
-
-	spew.Dump(config)
-	os.Exit(1)
 
 	// awsRegion := *region
 	// if awsRegion == "" {
