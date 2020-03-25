@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"strings"
 
@@ -63,21 +62,21 @@ func getESSHConfig() (*ESSHConfig, error) {
 		if config.Region == "" {
 			config.Region = os.Getenv("AWS_DEFAULT_REGION")
 		}
+	}
+
+	if config.Region == "" {
 		log.Fatal("count not find your AWS region from either -r or env vars AWS_REGION, AWS_DEFAULT_REGION")
 	}
 
 	config.ConnectPublicIP = *usePublicIP
 
 	//Now work out posistional args
-
-	//TODO: check nargs for pos args
 	if flag.NArg() == 0 {
 		config.SearchMode = SearchModeMenu
 	}
 
 	// inst id or tag
 	if flag.NArg() > 0 {
-		fmt.Println("inst id or tag")
 		config.SearchValue = flag.Arg(0)
 		if strings.HasPrefix(config.SearchValue, "i-") {
 			config.SearchMode = SearchModeInst
@@ -86,12 +85,8 @@ func getESSHConfig() (*ESSHConfig, error) {
 		}
 	}
 
-	//commands to pass on to ssh, check for --
 	if flag.NArg() > 1 {
-		sep := flag.Arg(1)
-		if sep == "--" {
-			config.sshExtraArgs = flag.Args()[1:flag.NArg()]
-		}
+		config.sshExtraArgs = flag.Args()[1:flag.NArg()]
 	}
 
 	return config, nil
