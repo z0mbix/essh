@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
+	"github.com/davecgh/go-spew/spew"
 	log "github.com/sirupsen/logrus"
-	flag "github.com/spf13/pflag"
 )
 
 func main() {
@@ -25,46 +26,41 @@ func main() {
 		fmt.Println("Failed to parse config...")
 	}
 
+	if config.Debug {
+		log.Debug(spew.Sdump(config))
+	}
+
 	var instanceID string
-	var hasInstanceID bool
+	// var hasInstanceID bool
 
-	// awsRegion := *region
-	// if awsRegion == "" {
-	// 	log.Debug("aws region not set, trying AWS_DEFAULT_REGION environment variable")
-	// 	awsRegion = os.Getenv("AWS_DEFAULT_REGION")
-	// 	if awsRegion == "" {
-	// 		log.Debug("aws region not found in AWS_DEFAULT_REGION environment variable")
-	// 		log.Fatal("please set the region using the -r/--region flag or the AWS_DEFAULT_REGION environment variable")
-	// 	}
-	// 	log.Debugf("aws region found in AWS_DEFAULT_REGION environment variable: %s", awsRegion)
-	// }
-
-	if len(flag.Args()) < 1 {
-		flag.Usage()
-		log.Fatal("You need to specify either an instance id, or a EC2 tag Name")
-	}
-
-	sshHost := flag.Arg(0)
+	// sshHost := config.SearchValue
 	sshArgs := []string{"-l", config.UserName}
-	sshExtraArgs := flag.Args()[1:len(flag.Args())]
+	sshExtraArgs := config.sshExtraArgs
 
-	if strings.HasPrefix(sshHost, "i-") {
-		hasInstanceID = true
-		instanceID = sshHost
-	}
+	// if strings.HasPrefix(sshHost, "i-") {
+	// 	hasInstanceID = true
+	// 	instanceID = sshHost
+	// }
 
 	sess, err := NewAwsSession(config.Region)
 	if err != nil {
 		log.Fatalf("could not get instance/session: %s", err)
 	}
 
-	if !hasInstanceID {
-		log.Debugf("using Name tag %s to find instance id", sshHost)
-		instanceID, err = getInstanceIDFromNameTag(sess, sshHost)
+	if config.SearchMode == SearchModeTag {
+		log.Debugf("using Name tag %s to find instance id", config.SearchValue)
+
+		//TODO: change this to return more than one result, then show a menu for selection
+		instanceID, err = getInstanceIDFromNameTag(sess, config.SearchValue)
 		if err != nil {
 			log.Fatal(err)
 		}
 		log.Debugf("found instance id: %s", instanceID)
+	} else if config.SearchMode == SearchModeInst {
+		instanceID = config.SearchValue
+	} else if config.SearchMode == SearchModeMenu {
+		log.Info("menu not implemented yet, must supply a unique tag or instance-id")
+		os.Exit(1)
 	}
 
 	ins, err := NewAwsInstance(sess, instanceID)
@@ -72,8 +68,8 @@ func main() {
 		log.Fatalf("could not get instance/session: %s", err)
 	}
 
-	log.Debugf("looking up ip of: %s", sshHost)
-	sshHost, err = ins.IP(config.ConnectPublicIP)
+	log.Debugf("looking up ip of: %s", instanceID)
+	sshHost, err := ins.IP(config.ConnectPublicIP)
 	if err != nil {
 		log.Fatalf("could not find instance ip address: %s", err)
 	}
