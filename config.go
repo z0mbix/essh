@@ -79,15 +79,18 @@ func getESSHConfig() (*ESSHConfig, error) {
 
 	nargs := flag.NArg()
 
+	//do we have extra flags denoted by a --
 	lastDashAt := flag.CommandLine.ArgsLenAtDash()
-	if lastDashAt > 1 {
+
+	if lastDashAt != -1 && lastDashAt > 1 {
 		log.Fatal("only specifiy an instance id or a tag, if a tag has a space, wrap in double quotes.")
 	}
 
-	//Now work out posistional args
-	//inst id or tag
-	//TODO(rich): need to check for error here, we assume that the lastDash is one, one entery of tag or instance id, need to add a check here
-	if nargs > 0 {
+	if lastDashAt == 0 || lastDashAt == 1 {
+		config.sshExtraArgs = flag.Args()[lastDashAt:flag.NArg()]
+	}
+
+	if lastDashAt > 0 || (lastDashAt == -1 && nargs == 1) {
 		config.SearchValue = flag.Arg(0)
 		if strings.HasPrefix(config.SearchValue, "i-") {
 			config.SearchMode = SearchModeInst
@@ -96,10 +99,6 @@ func getESSHConfig() (*ESSHConfig, error) {
 		}
 	} else {
 		config.SearchMode = SearchModeMenu
-	}
-
-	if lastDashAt == 1 {
-		config.sshExtraArgs = flag.Args()[lastDashAt:flag.NArg()]
 	}
 
 	return config, nil
