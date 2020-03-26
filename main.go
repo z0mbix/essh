@@ -31,7 +31,6 @@ func main() {
 	}
 
 	var instanceID string
-	// var hasInstanceID bool
 
 	sshArgs := []string{"-l", config.UserName}
 	sshExtraArgs := config.sshExtraArgs
