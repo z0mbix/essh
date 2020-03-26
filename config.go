@@ -70,23 +70,39 @@ func getESSHConfig() (*ESSHConfig, error) {
 
 	config.ConnectPublicIP = *usePublicIP
 
+	lastDashAt := flag.CommandLine.ArgsLenAtDash()
+
+	if config.Debug {
+		log.Debug("All cmd line args passed in")
+		for idx := range flag.Args() {
+			log.Debugf("flag_pos: %d, flag: %s\n", idx, flag.Arg(idx))
+		}
+	}
+
+	nargs := flag.NArg()
+
 	//Now work out posistional args
-	if flag.NArg() == 0 {
+
+	//TODO(rich): check on this, i think i can be removed, needs testing
+	if nargs == 0 {
 		config.SearchMode = SearchModeMenu
 	}
 
 	// inst id or tag
-	if flag.NArg() > 0 {
+	//TODO(rich): need to check for error here, we assume that the lastDash is one, one entery of tag or instance id, need to add a check here
+	if nargs > 0 {
 		config.SearchValue = flag.Arg(0)
 		if strings.HasPrefix(config.SearchValue, "i-") {
 			config.SearchMode = SearchModeInst
 		} else {
 			config.SearchMode = SearchModeTag
 		}
+	} else {
+		config.SearchMode = SearchModeMenu
 	}
 
-	if flag.NArg() > 1 {
-		config.sshExtraArgs = flag.Args()[1:flag.NArg()]
+	if lastDashAt >= 0 {
+		config.sshExtraArgs = flag.Args()[lastDashAt:flag.NArg()]
 	}
 
 	return config, nil

@@ -33,14 +33,8 @@ func main() {
 	var instanceID string
 	// var hasInstanceID bool
 
-	// sshHost := config.SearchValue
 	sshArgs := []string{"-l", config.UserName}
 	sshExtraArgs := config.sshExtraArgs
-
-	// if strings.HasPrefix(sshHost, "i-") {
-	// 	hasInstanceID = true
-	// 	instanceID = sshHost
-	// }
 
 	sess, err := NewAwsSession(config.Region)
 	if err != nil {
