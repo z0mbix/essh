@@ -97,7 +97,7 @@ func getESSHConfig() (*ESSHConfig, error) {
 		} else {
 			config.SearchMode = SearchModeTag
 		}
-	} else if nargs > 1 {
+	} else if nargs > 1 && lastDashAt != 0 {
 		log.Fatal("only specifiy an instance id or a tag, if a tag has a space, wrap in double quotes.")
 
 	} else {
