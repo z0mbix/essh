@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"os"
 	"strings"
 
@@ -65,7 +66,7 @@ func getESSHConfig() (*ESSHConfig, error) {
 	}
 
 	if config.Region == "" {
-		log.Fatal("count not find your AWS region from either -r or env vars AWS_REGION, AWS_DEFAULT_REGION")
+		return nil, errors.New("count not find your AWS region from either -r or env vars AWS_REGION, AWS_DEFAULT_REGION")
 	}
 
 	config.ConnectPublicIP = *usePublicIP
@@ -83,7 +84,7 @@ func getESSHConfig() (*ESSHConfig, error) {
 	lastDashAt := flag.CommandLine.ArgsLenAtDash()
 
 	if lastDashAt != -1 && lastDashAt > 1 {
-		log.Fatal("only specifiy an instance id or a tag, if a tag has a space, wrap in double quotes.")
+		return nil, errors.New("only specifiy an instance id or a tag, if a tag has a space, wrap in double quotes")
 	}
 
 	if lastDashAt == 0 || lastDashAt == 1 {
@@ -98,7 +99,7 @@ func getESSHConfig() (*ESSHConfig, error) {
 			config.SearchMode = SearchModeTag
 		}
 	} else if nargs > 1 && lastDashAt != 0 {
-		log.Fatal("only specifiy an instance id or a tag, if a tag has a space, wrap in double quotes.")
+		return nil, errors.New("only specifiy an instance id or a tag, if a tag has a space, wrap in double quotes")
 
 	} else {
 		config.SearchMode = SearchModeMenu

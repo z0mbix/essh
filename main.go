@@ -23,7 +23,7 @@ func main() {
 	config, err := getESSHConfig()
 
 	if err != nil {
-		fmt.Println("Failed to parse config...")
+		log.Fatal(err)
 	}
 
 	if config.Debug {
