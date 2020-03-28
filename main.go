@@ -30,8 +30,6 @@ func main() {
 		log.Debug(spew.Sdump(config))
 	}
 
-	var instanceID string
-
 	sshArgs := []string{"-l", config.UserName}
 	sshExtraArgs := config.sshExtraArgs
 
@@ -39,6 +37,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("could not get instance/session: %s", err)
 	}
+
+	var instanceID string
 
 	if config.SearchMode == SearchModeTag {
 		log.Debugf("using Name tag %s to find instance id", config.SearchValue)
