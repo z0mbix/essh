@@ -2,12 +2,14 @@ package main
 
 import (
 	"errors"
+	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2instanceconnect"
+	"github.com/davecgh/go-spew/spew"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -32,9 +34,19 @@ func NewAwsSession(region string) (*AwsSession, error) {
 	}, nil
 }
 
+func _getInstances(sess *AwsSession, instInput *ec2.DescribeInstancesInput) (*ec2.DescribeInstancesOutput, error) {
+	svc := ec2.New(sess.session)
+	instanceData, err := svc.DescribeInstances(instInput)
+	if err != nil {
+		return nil, err
+	}
+
+	return instanceData, nil
+}
+
 // Lookup the instance ID by using the instance's Name tag
 func getInstanceIDFromNameTag(sess *AwsSession, name string) (string, error) {
-	svc := ec2.New(sess.session)
+
 	input := &ec2.DescribeInstancesInput{
 		Filters: []*ec2.Filter{
 			{
@@ -51,15 +63,35 @@ func getInstanceIDFromNameTag(sess *AwsSession, name string) (string, error) {
 			},
 		}}
 
-	instanceData, err := svc.DescribeInstances(input)
+	instanceData, err := _getInstances(sess, input)
+
 	if err != nil {
-		return "", err
+		log.Fatal("agggggg")
+	}
+
+	if len(instanceData.Reservations) > 0 {
+		return *instanceData.Reservations[0].Instances[0].InstanceId, nil
 	}
 
 	if instanceData.Reservations == nil {
-		return "", errors.New("could not find instance")
+		*(input.Filters[0].Values[0]) = *(input.Filters[0].Values[0]) + "*"
+		spew.Dump(input)
+		instanceData, err = _getInstances(sess, input)
+
+		if err != nil {
+			log.Fatal("ttttttt")
+		}
+
+		if len(instanceData.Reservations) > 0 {
+			return *instanceData.Reservations[0].Instances[0].InstanceId, nil
+		}
+
+		os.Exit(1)
+
 	}
-	return *instanceData.Reservations[0].Instances[0].InstanceId, nil
+
+	return "", errors.New("could not find instance")
+
 }
 
 // AwsInstance An AWS instance
