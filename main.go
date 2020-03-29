@@ -5,11 +5,13 @@ import (
 	"os"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/davecgh/go-spew/spew"
 	log "github.com/sirupsen/logrus"
 )
 
 func main() {
+	var err error
 
 	log.SetLevel(log.InfoLevel)
 
@@ -38,31 +40,43 @@ func main() {
 		log.Fatalf("could not get instance/session: %s", err)
 	}
 
-	var instanceID string
+	var instances []*ec2.Reservation
 
 	if config.SearchMode == SearchModeTag {
 		log.Debugf("using Name tag %s to find instance id", config.SearchValue)
 
 		//TODO: change this to return more than one result, then show a menu for selection
-		instanceID, err = getInstanceIDFromNameTag(sess, config.SearchValue)
+		instances, err = getInstanceFromNameTag(sess, config.SearchValue)
 		if err != nil {
 			log.Fatal(err)
 		}
-		log.Debugf("found instance id: %s", instanceID)
+		// log.Debugf("found instance id: %s", instanceID)
+
 	} else if config.SearchMode == SearchModeInst {
-		instanceID = config.SearchValue
+		instances, err = getInstanceFromID(sess, config.SearchValue)
+		if err != nil {
+			log.Fatal(err)
+		}
 	} else if config.SearchMode == SearchModeMenu {
 		log.Info("menu not implemented yet, must supply a unique tag or instance-id")
 		os.Exit(1)
 	}
 
-	ins, err := NewAwsInstance(sess, instanceID)
-	if err != nil {
-		log.Fatalf("could not get instance/session: %s", err)
+	//Menu Choices
+	if len(instances) == 0 {
+		log.Info("no instance found, add better logging here")
 	}
 
-	log.Debugf("looking up ip of: %s", instanceID)
-	sshHost, err := ins.IP(config.ConnectPublicIP)
+	var instConnect *AwsInstance
+	if len(instances) == 1 {
+		instConnect, err = NewAwsInstance(sess, *(instances[0].Instances[0]), config.ConnectPublicIP)
+		if err != nil {
+			log.Fatalf("could not get instance/session: %s", err)
+		}
+	}
+
+	log.Debugf("looking up ip of: %s", instConnect.CoonectIP)
+	sshHost := instConnect.CoonectIP
 	if err != nil {
 		log.Fatalf("could not find instance ip address: %s", err)
 	}
@@ -77,7 +91,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	comment := fmt.Sprintf("%s:%s", config.UserName, instanceID)
+	comment := fmt.Sprintf("%s:%s", config.UserName, instConnect.ID)
 	err = sshAgent.addKey(sshKeyPair.private, comment)
 	if err != nil {
 		log.Fatal(err)
@@ -89,7 +103,7 @@ func main() {
 	log.Debugf("host: %s", sshHost)
 
 	log.Debug("pushing public key to instance")
-	err = ins.sendPublicKey(config.UserName, string(sshKeyPair.public))
+	err = instConnect.sendPublicKey(config.UserName, string(sshKeyPair.public))
 	if err != nil {
 		log.Fatal(err)
 	}

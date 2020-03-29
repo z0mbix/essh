@@ -2,7 +2,7 @@ package main
 
 import (
 	"errors"
-	"os"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -37,15 +37,22 @@ func NewAwsSession(region string) (*AwsSession, error) {
 func _getInstances(sess *AwsSession, instInput *ec2.DescribeInstancesInput) (*ec2.DescribeInstancesOutput, error) {
 	svc := ec2.New(sess.session)
 	instanceData, err := svc.DescribeInstances(instInput)
-	if err != nil {
-		return nil, err
+	return instanceData, err
+}
+
+func getInstanceFromID(sess *AwsSession, id string) ([]*ec2.Reservation, error) {
+	input := &ec2.DescribeInstancesInput{
+		InstanceIds: []*string{
+			aws.String(id),
+		},
 	}
 
-	return instanceData, nil
+	a, err := _getInstances(sess, input)
+	return a.Reservations, err
 }
 
 // Lookup the instance ID by using the instance's Name tag
-func getInstanceIDFromNameTag(sess *AwsSession, name string) (string, error) {
+func getInstanceFromNameTag(sess *AwsSession, name string) ([]*ec2.Reservation, error) {
 
 	input := &ec2.DescribeInstancesInput{
 		Filters: []*ec2.Filter{
@@ -66,12 +73,12 @@ func getInstanceIDFromNameTag(sess *AwsSession, name string) (string, error) {
 	instanceData, err := _getInstances(sess, input)
 
 	if err != nil {
-		log.Fatal("agggggg")
+		return nil, fmt.Errorf("failed to search for tag: %s, err:%s", name, err)
 	}
 
-	if len(instanceData.Reservations) > 0 {
-		return *instanceData.Reservations[0].Instances[0].InstanceId, nil
-	}
+	// if len(instanceData.Reservations) > 0 {
+	// 	return instanceData.Reservations, nil
+	// }
 
 	if instanceData.Reservations == nil {
 		*(input.Filters[0].Values[0]) = *(input.Filters[0].Values[0]) + "*"
@@ -79,47 +86,47 @@ func getInstanceIDFromNameTag(sess *AwsSession, name string) (string, error) {
 		instanceData, err = _getInstances(sess, input)
 
 		if err != nil {
-			log.Fatal("ttttttt")
+			return nil, fmt.Errorf("failed to search for tag: %s, err:%s", name, err)
 		}
-
-		if len(instanceData.Reservations) > 0 {
-			return *instanceData.Reservations[0].Instances[0].InstanceId, nil
-		}
-
-		os.Exit(1)
-
 	}
 
-	return "", errors.New("could not find instance")
+	if len(instanceData.Reservations) > 0 {
+		return instanceData.Reservations, nil
+	}
+
+	return nil, errors.New("could not find instance")
 
 }
 
 // AwsInstance An AWS instance
 type AwsInstance struct {
 	session *AwsSession
-	id      string
-	data    *ec2.DescribeInstancesOutput
+	data    ec2.Instance
+
+	//extracted here for convenience
+	ID        string
+	Public    bool
+	CoonectIP string
+	NameTag   string //TODO: add name tag
 }
 
 // NewAwsInstance returns a new AWS instance
-func NewAwsInstance(sess *AwsSession, instanceID string) (*AwsInstance, error) {
-	svc := ec2.New(sess.session)
-	input := &ec2.DescribeInstancesInput{
-		InstanceIds: []*string{
-			aws.String(instanceID),
-		},
-	}
+func NewAwsInstance(sess *AwsSession, inst ec2.Instance, publicIP bool) (*AwsInstance, error) {
 
-	instanceData, err := svc.DescribeInstances(input)
+	ai := AwsInstance{
+		session: sess,
+		ID:      *inst.InstanceId,
+		data:    inst,
+
+		Public: publicIP,
+	}
+	var err error
+	ai.CoonectIP, err = ai.IP(publicIP)
 	if err != nil {
 		return nil, err
 	}
 
-	return &AwsInstance{
-		session: sess,
-		id:      instanceID,
-		data:    instanceData,
-	}, nil
+	return &ai, nil
 }
 
 func (a *AwsInstance) IP(public bool) (string, error) {
@@ -139,7 +146,7 @@ func (a *AwsInstance) IP(public bool) (string, error) {
 }
 
 func (a *AwsInstance) privateIP() (string, error) {
-	ip := a.data.Reservations[0].Instances[0].PrivateIpAddress
+	ip := a.data.PrivateIpAddress
 	if ip == nil {
 		return "", errors.New("could not find private ip")
 	}
@@ -147,7 +154,7 @@ func (a *AwsInstance) privateIP() (string, error) {
 }
 
 func (a *AwsInstance) publicIP() (string, error) {
-	ip := a.data.Reservations[0].Instances[0].PublicIpAddress
+	ip := a.data.PublicIpAddress
 	if ip == nil {
 		return "", errors.New("could not find public ip")
 	}
@@ -157,8 +164,8 @@ func (a *AwsInstance) publicIP() (string, error) {
 func (a *AwsInstance) sendPublicKey(user, publicKey string) error {
 	svc := ec2instanceconnect.New(a.session.session)
 	input := &ec2instanceconnect.SendSSHPublicKeyInput{
-		AvailabilityZone: aws.String(*a.data.Reservations[0].Instances[0].Placement.AvailabilityZone),
-		InstanceId:       aws.String(a.id),
+		AvailabilityZone: aws.String(*a.data.Placement.AvailabilityZone),
+		InstanceId:       aws.String(a.ID),
 		InstanceOSUser:   aws.String(user),
 		SSHPublicKey:     aws.String(publicKey),
 	}
