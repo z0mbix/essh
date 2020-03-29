@@ -40,20 +40,20 @@ func main() {
 		log.Fatalf("could not get instance/session: %s", err)
 	}
 
-	var instances []*ec2.Reservation
+	var reservations []*ec2.Reservation
 
 	if config.SearchMode == SearchModeTag {
 		log.Debugf("using Name tag %s to find instance id", config.SearchValue)
 
 		//TODO: change this to return more than one result, then show a menu for selection
-		instances, err = getInstanceFromNameTag(sess, config.SearchValue)
+		reservations, err = getInstanceFromNameTag(sess, config.SearchValue)
 		if err != nil {
 			log.Fatal(err)
 		}
 		// log.Debugf("found instance id: %s", instanceID)
 
 	} else if config.SearchMode == SearchModeInst {
-		instances, err = getInstanceFromID(sess, config.SearchValue)
+		reservations, err = getInstanceFromID(sess, config.SearchValue)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -63,16 +63,35 @@ func main() {
 	}
 
 	//Menu Choices
-	if len(instances) == 0 {
-		log.Info("no instance found, add better logging here")
+	if len(reservations[0].Instances) == 0 {
+		log.Fatal("no instance found, add better logging here")
 	}
 
 	var instConnect *AwsInstance
-	if len(instances) == 1 {
-		instConnect, err = NewAwsInstance(sess, *(instances[0].Instances[0]), config.ConnectPublicIP)
+	if len(reservations[0].Instances) == 1 {
+		instConnect, err = NewAwsInstance(sess, *(reservations[0].Instances[0]), config.ConnectPublicIP)
 		if err != nil {
 			log.Fatalf("could not get instance/session: %s", err)
 		}
+	} else {
+
+		instances := []AwsInstance{}
+
+		for _, inst := range reservations[0].Instances {
+			i, err := NewAwsInstance(sess, *inst, config.ConnectPublicIP)
+			if err != nil {
+				log.Fatalf("could not get instance/session: %s", err)
+			}
+
+			instances = append(instances, *i)
+
+		}
+
+		instConnect, err = showMenu(instances)
+	}
+
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	log.Debugf("looking up ip of: %s", instConnect.CoonectIP)
