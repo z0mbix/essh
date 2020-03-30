@@ -68,7 +68,7 @@ func main() {
 	}
 
 	var instConnect *AwsInstance
-	if len(reservations) == 1 {
+	if len(reservations) == 1 && len(reservations[0].Instances) == 1 {
 		instConnect, err = NewAwsInstance(sess, reservations[0].Instances[0], config.ConnectPublicIP)
 		if err != nil {
 			log.Fatalf("could not get instance/session: %s", err)
