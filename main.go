@@ -63,12 +63,12 @@ func main() {
 		}
 	}
 
-	if len(reservations[0].Instances) == 0 {
+	if len(reservations) == 0 {
 		log.Fatal("no instance found, add better logging here")
 	}
 
 	var instConnect *AwsInstance
-	if len(reservations[0].Instances) == 1 {
+	if len(reservations) == 1 {
 		instConnect, err = NewAwsInstance(sess, reservations[0].Instances[0], config.ConnectPublicIP)
 		if err != nil {
 			log.Fatalf("could not get instance/session: %s", err)
@@ -76,17 +76,17 @@ func main() {
 	} else { //Menu Choices
 
 		instances := []AwsInstance{}
+		for rIdx := range reservations {
+			for _, inst := range reservations[rIdx].Instances {
+				i, err := NewAwsInstance(sess, inst, config.ConnectPublicIP)
+				if err != nil {
+					log.Fatalf("could not get instance/session: %s", err)
+				}
 
-		for _, inst := range reservations[0].Instances {
-			i, err := NewAwsInstance(sess, inst, config.ConnectPublicIP)
-			if err != nil {
-				log.Fatalf("could not get instance/session: %s", err)
+				instances = append(instances, *i)
+
 			}
-
-			instances = append(instances, *i)
-
 		}
-
 		instConnect, err = showMenu(instances)
 	}
 

@@ -32,7 +32,7 @@ func showMenu(instances []AwsInstance) (*AwsInstance, error) {
 		Label:     "Select an Instance",
 		Items:     instances,
 		Templates: templates,
-		Size:      4,
+		Size:      10,
 		Searcher:  searcher,
 	}
 

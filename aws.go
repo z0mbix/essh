@@ -59,7 +59,7 @@ func getInstanceFromNameTag(sess *AwsSession, name string) ([]*ec2.Reservation, 
 			{
 				Name: aws.String("tag:Name"),
 				Values: []*string{
-					aws.String(name),
+					aws.String(name + "*"),
 				},
 			},
 			{
