@@ -50,12 +50,26 @@ Connect as user `ubuntu` passing the flags `-A`, `-4` and the command `uptime` t
 $ essh -u ubuntu i-02fab0d7dd3ab737b -- -A -4 uptime
 ```
 
-Connect to an instance by its name tag:
+Connect to an instance by it's full name tag:
 
 ```
 $ essh prod-web1
 ```
 
+Display a menu of instances that match a partial tag:
+
+```
+./essh --debug -r ap-southeast-1 -p server
+```
+
+![Screenshot partial tag menu](./imgs/partialtag.png)
+
+Don't know which instance to connect to, run without specifiny a tag or instance id
+
+```
+./essh --debug -r ap-southeast-1 -p
+```
+![Screenshot partial tag menu](./imgs/listall.png)
 
 ## Examples
 
