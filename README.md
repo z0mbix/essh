@@ -59,7 +59,7 @@ $ essh prod-web1
 Display a menu of instances that match a partial tag:
 
 ```
-./essh --debug -r ap-southeast-1 -p server
+./essh -r ap-southeast-1 -p server
 ```
 
 ![Screenshot partial tag menu](./imgs/partialtag.png)
@@ -67,7 +67,7 @@ Display a menu of instances that match a partial tag:
 Don't know which instance to connect to, run without specifiny a tag or instance id
 
 ```
-./essh --debug -r ap-southeast-1 -p
+./essh -r ap-southeast-1 -p
 ```
 ![Screenshot partial tag menu](./imgs/listall.png)
 
