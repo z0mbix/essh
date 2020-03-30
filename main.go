@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -58,11 +57,12 @@ func main() {
 			log.Fatal(err)
 		}
 	} else if config.SearchMode == SearchModeMenu {
-		log.Info("menu not implemented yet, must supply a unique tag or instance-id")
-		os.Exit(1)
+		reservations, err = getInstanceFromNameTag(sess, "*")
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
-	//Menu Choices
 	if len(reservations[0].Instances) == 0 {
 		log.Fatal("no instance found, add better logging here")
 	}
@@ -73,7 +73,7 @@ func main() {
 		if err != nil {
 			log.Fatalf("could not get instance/session: %s", err)
 		}
-	} else {
+	} else { //Menu Choices
 
 		instances := []AwsInstance{}
 
