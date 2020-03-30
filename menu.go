@@ -14,7 +14,7 @@ func showMenu(instances []AwsInstance) (*AwsInstance, error) {
 		name := sInst.NameTag
 		input := i
 
-		return strings.Contains(name, input)
+		return strings.Contains(name, input) || strings.Contains(sInst.ID, input)
 	}
 
 	templates := &promptui.SelectTemplates{
