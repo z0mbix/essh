@@ -69,7 +69,7 @@ func main() {
 
 	var instConnect *AwsInstance
 	if len(reservations[0].Instances) == 1 {
-		instConnect, err = NewAwsInstance(sess, *(reservations[0].Instances[0]), config.ConnectPublicIP)
+		instConnect, err = NewAwsInstance(sess, reservations[0].Instances[0], config.ConnectPublicIP)
 		if err != nil {
 			log.Fatalf("could not get instance/session: %s", err)
 		}
@@ -78,7 +78,7 @@ func main() {
 		instances := []AwsInstance{}
 
 		for _, inst := range reservations[0].Instances {
-			i, err := NewAwsInstance(sess, *inst, config.ConnectPublicIP)
+			i, err := NewAwsInstance(sess, inst, config.ConnectPublicIP)
 			if err != nil {
 				log.Fatalf("could not get instance/session: %s", err)
 			}

@@ -11,7 +11,7 @@ func showMenu(instances []AwsInstance) (*AwsInstance, error) {
 
 	searcher := func(i string, index int) bool {
 		sInst := instances[index]
-		name := sInst.ID
+		name := sInst.NameTag
 		input := i
 
 		return strings.Contains(name, input)
@@ -19,9 +19,9 @@ func showMenu(instances []AwsInstance) (*AwsInstance, error) {
 
 	templates := &promptui.SelectTemplates{
 		Label:    "{{ . }}?",
-		Active:   "\U0001F336 {{ .ID | cyan }} ({{ .CoonectIP | red }})",
-		Inactive: "  {{ .ID | cyan }} ({{ .CoonectIP | red }})",
-		Selected: "\U0001F336 {{ .ID | red | cyan }}",
+		Active:   "\U0001F5A5  {{ .NameTag }}  {{ .ID | cyan }} ({{ .CoonectIP | red }})",
+		Inactive: " {{ .NameTag }} {{ .ID | cyan }} ({{ .CoonectIP | red }})",
+		Selected: "{{ .NameTag }} {{ .ID | red | cyan }}",
 		Details: `
 --------- Instances ----------
 {{ "ID:" | faint }}	{{ .ID }}

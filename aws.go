@@ -76,13 +76,11 @@ func getInstanceFromNameTag(sess *AwsSession, name string) ([]*ec2.Reservation, 
 		return nil, fmt.Errorf("failed to search for tag: %s, err:%s", name, err)
 	}
 
-	// if len(instanceData.Reservations) > 0 {
-	// 	return instanceData.Reservations, nil
-	// }
-
 	if instanceData.Reservations == nil {
 		*(input.Filters[0].Values[0]) = *(input.Filters[0].Values[0]) + "*"
-		spew.Dump(input)
+
+		log.Debug(spew.Sdump(input))
+
 		instanceData, err = _getInstances(sess, input)
 
 		if err != nil {
@@ -101,7 +99,7 @@ func getInstanceFromNameTag(sess *AwsSession, name string) ([]*ec2.Reservation, 
 // AwsInstance An AWS instance
 type AwsInstance struct {
 	session *AwsSession
-	data    ec2.Instance
+	data    *ec2.Instance
 
 	//extracted here for convenience
 	ID        string
@@ -110,8 +108,18 @@ type AwsInstance struct {
 	NameTag   string //TODO: add name tag
 }
 
+func getTagValeu(inst *ec2.Instance) string {
+
+	for _, t := range inst.Tags {
+		if *t.Key == "Name" {
+			return *t.Value
+		}
+	}
+	return ""
+}
+
 // NewAwsInstance returns a new AWS instance
-func NewAwsInstance(sess *AwsSession, inst ec2.Instance, publicIP bool) (*AwsInstance, error) {
+func NewAwsInstance(sess *AwsSession, inst *ec2.Instance, publicIP bool) (*AwsInstance, error) {
 
 	ai := AwsInstance{
 		session: sess,
@@ -125,7 +133,7 @@ func NewAwsInstance(sess *AwsSession, inst ec2.Instance, publicIP bool) (*AwsIns
 	if err != nil {
 		return nil, err
 	}
-
+	ai.NameTag = getTagValeu(inst)
 	return &ai, nil
 }
 
