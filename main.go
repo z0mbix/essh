@@ -15,7 +15,6 @@ func main() {
 	log.SetLevel(log.InfoLevel)
 
 	log.SetFormatter(&log.TextFormatter{
-		TimestampFormat:        "2006-01-02T15:04:05.000",
 		DisableTimestamp:       true,
 		FullTimestamp:          true,
 		DisableLevelTruncation: true,
@@ -94,8 +93,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Debugf("looking up ip of: %s", instConnect.CoonectIP)
-	sshHost := instConnect.CoonectIP
+	log.Debugf("looking up ip of: %s", instConnect.ConnectIP)
+	sshHost := instConnect.ConnectIP
 	if err != nil {
 		log.Fatalf("could not find instance ip address: %s", err)
 	}

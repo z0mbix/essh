@@ -104,7 +104,7 @@ type AwsInstance struct {
 	//extracted here for convenience
 	ID        string
 	Public    bool
-	CoonectIP string
+	ConnectIP string
 	NameTag   string //TODO: add name tag
 }
 
@@ -129,7 +129,7 @@ func NewAwsInstance(sess *AwsSession, inst *ec2.Instance, publicIP bool) (*AwsIn
 		Public: publicIP,
 	}
 	var err error
-	ai.CoonectIP, err = ai.IP(publicIP)
+	ai.ConnectIP, err = ai.IP(publicIP)
 	if err != nil {
 		return nil, err
 	}

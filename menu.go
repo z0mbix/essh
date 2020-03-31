@@ -8,24 +8,21 @@ import (
 )
 
 func showMenu(instances []AwsInstance) (*AwsInstance, error) {
-
 	searcher := func(i string, index int) bool {
 		sInst := instances[index]
 		name := sInst.NameTag
 		input := i
-
 		return strings.Contains(name, input) || strings.Contains(sInst.ID, input)
 	}
 
 	templates := &promptui.SelectTemplates{
 		Label:    "{{ . }}?",
-		Active:   "\U0001F5A5  {{ .NameTag }}  {{ .ID | cyan }} ({{ .CoonectIP | red }})",
-		Inactive: " {{ .NameTag }} {{ .ID | cyan }} ({{ .CoonectIP | red }})",
-		Selected: "{{ .NameTag }} {{ .ID | red | cyan }}",
+		Active:   "» {{ .NameTag | yellow }} {{ .ID | green }} ({{ .ConnectIP | red }})",
+		Inactive: "  {{ .NameTag }} {{ .ID | cyan }} ({{ .ConnectIP }})",
+		Selected: "  {{ .NameTag | green }} {{ .ID | red | cyan }}",
 		Details: `
 --------- Instances ----------
-{{ "ID:" | faint }}	{{ .ID }}
-{{ "CoonectIP IP:" | faint }}	{{ .CoonectIP }}`,
+{{ .NameTag | yellow }} {{ .ID | green }} ({{ .ConnectIP | red }})`,
 	}
 
 	prompt := promptui.Select{
@@ -43,5 +40,4 @@ func showMenu(instances []AwsInstance) (*AwsInstance, error) {
 	}
 
 	return &instances[i], nil
-
 }
