@@ -19,7 +19,7 @@ func showMenu(instances []AwsInstance) (*AwsInstance, error) {
 		Label:    "{{ . }}?",
 		Active:   "» {{ .NameTag | yellow }} {{ .ID | green }} ({{ .ConnectIP | red }})",
 		Inactive: "  {{ .NameTag }} {{ .ID | cyan }} ({{ .ConnectIP }})",
-		Selected: "  {{ .NameTag | green }} {{ .ID | red | cyan }}",
+		Selected: "{{ .NameTag | green }} {{ .ID | red }}",
 		Details: `
 --------- Instances ----------
 {{ .NameTag | yellow }} {{ .ID | green }} ({{ .ConnectIP | red }})`,
