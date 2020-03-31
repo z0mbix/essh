@@ -2,24 +2,17 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/davecgh/go-spew/spew"
 	log "github.com/sirupsen/logrus"
-	flag "github.com/spf13/pflag"
 )
 
 func main() {
-	userName := flag.StringP("username", "u", "ec2-user", "UNIX user name")
-	region := flag.StringP("region", "r", "", "AWS Region")
-	usePublicIP := flag.BoolP("use-public-ip", "p", false, "Use the public ip instead of the private ip address")
-	debug := flag.BoolP("debug", "d", false, "Enable debug logging")
-	flag.Parse()
+	var err error
 
 	log.SetLevel(log.InfoLevel)
-	if *debug {
-		log.SetLevel(log.DebugLevel)
-	}
 
 	log.SetFormatter(&log.TextFormatter{
 		TimestampFormat:        "2006-01-02T15:04:05.000",
@@ -28,55 +21,81 @@ func main() {
 		DisableLevelTruncation: true,
 	})
 
-	var instanceID string
-	var hasInstanceID bool
+	config, err := getESSHConfig()
 
-	awsRegion := *region
-	if awsRegion == "" {
-		log.Debug("aws region not set, trying AWS_DEFAULT_REGION environment variable")
-		awsRegion = os.Getenv("AWS_DEFAULT_REGION")
-		if awsRegion == "" {
-			log.Debug("aws region not found in AWS_DEFAULT_REGION environment variable")
-			log.Fatal("please set the region using the -r/--region flag or the AWS_DEFAULT_REGION environment variable")
-		}
-		log.Debugf("aws region found in AWS_DEFAULT_REGION environment variable: %s", awsRegion)
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	if len(flag.Args()) < 1 {
-		flag.Usage()
-		log.Fatal("You need to specify either an instance id, or a EC2 tag Name")
+	if config.Debug {
+		log.Debug(spew.Sdump(config))
 	}
 
-	sshHost := flag.Arg(0)
-	sshArgs := []string{"-l", *userName}
-	sshExtraArgs := flag.Args()[1:len(flag.Args())]
+	sshArgs := []string{"-l", config.UserName}
+	sshExtraArgs := config.sshExtraArgs
 
-	if strings.HasPrefix(sshHost, "i-") {
-		hasInstanceID = true
-		instanceID = sshHost
-	}
-
-	sess, err := NewAwsSession(awsRegion)
+	sess, err := NewAwsSession(config.Region)
 	if err != nil {
 		log.Fatalf("could not get instance/session: %s", err)
 	}
 
-	if !hasInstanceID {
-		log.Debugf("using Name tag %s to find instance id", sshHost)
-		instanceID, err = getInstanceIDFromNameTag(sess, sshHost)
+	var reservations []*ec2.Reservation
+
+	if config.SearchMode == SearchModeTag {
+		log.Debugf("using Name tag %s to find instance id", config.SearchValue)
+
+		//TODO: change this to return more than one result, then show a menu for selection
+		reservations, err = getInstanceFromNameTag(sess, config.SearchValue)
 		if err != nil {
 			log.Fatal(err)
 		}
-		log.Debugf("found instance id: %s", instanceID)
+		// log.Debugf("found instance id: %s", instanceID)
+
+	} else if config.SearchMode == SearchModeInst {
+		reservations, err = getInstanceFromID(sess, config.SearchValue)
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else if config.SearchMode == SearchModeMenu {
+		reservations, err = getInstanceFromNameTag(sess, "*")
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
-	ins, err := NewAwsInstance(sess, instanceID)
+	if len(reservations) == 0 {
+		log.Fatal("no instance found, add better logging here")
+	}
+
+	var instConnect *AwsInstance
+	if len(reservations) == 1 && len(reservations[0].Instances) == 1 {
+		instConnect, err = NewAwsInstance(sess, reservations[0].Instances[0], config.ConnectPublicIP)
+		if err != nil {
+			log.Fatalf("could not get instance/session: %s", err)
+		}
+	} else { //Menu Choices
+
+		instances := []AwsInstance{}
+		for rIdx := range reservations {
+			for _, inst := range reservations[rIdx].Instances {
+				i, err := NewAwsInstance(sess, inst, config.ConnectPublicIP)
+				if err != nil {
+					log.Fatalf("could not get instance/session: %s", err)
+				}
+
+				instances = append(instances, *i)
+
+			}
+		}
+		instConnect, err = showMenu(instances)
+	}
+
 	if err != nil {
-		log.Fatalf("could not get instance/session: %s", err)
+		log.Fatal(err)
 	}
 
-	log.Debugf("looking up ip of: %s", sshHost)
-	sshHost, err = ins.IP(*usePublicIP)
+	log.Debugf("looking up ip of: %s", instConnect.CoonectIP)
+	sshHost := instConnect.CoonectIP
 	if err != nil {
 		log.Fatalf("could not find instance ip address: %s", err)
 	}
@@ -91,7 +110,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	comment := fmt.Sprintf("%s:%s", *userName, instanceID)
+	comment := fmt.Sprintf("%s:%s", config.UserName, instConnect.ID)
 	err = sshAgent.addKey(sshKeyPair.private, comment)
 	if err != nil {
 		log.Fatal(err)
@@ -103,7 +122,7 @@ func main() {
 	log.Debugf("host: %s", sshHost)
 
 	log.Debug("pushing public key to instance")
-	err = ins.sendPublicKey(*userName, string(sshKeyPair.public))
+	err = instConnect.sendPublicKey(config.UserName, string(sshKeyPair.public))
 	if err != nil {
 		log.Fatal(err)
 	}
