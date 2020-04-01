@@ -53,7 +53,6 @@ func getInstanceFromID(sess *AwsSession, id string) ([]*ec2.Reservation, error) 
 
 // Lookup the instance ID by using the instance's Name tag
 func getInstanceFromNameTag(sess *AwsSession, name string) ([]*ec2.Reservation, error) {
-
 	input := &ec2.DescribeInstancesInput{
 		Filters: []*ec2.Filter{
 			{
@@ -109,7 +108,6 @@ type AwsInstance struct {
 }
 
 func getTagValeu(inst *ec2.Instance) string {
-
 	for _, t := range inst.Tags {
 		if *t.Key == "Name" {
 			return *t.Value
@@ -120,14 +118,13 @@ func getTagValeu(inst *ec2.Instance) string {
 
 // NewAwsInstance returns a new AWS instance
 func NewAwsInstance(sess *AwsSession, inst *ec2.Instance, publicIP bool) (*AwsInstance, error) {
-
 	ai := AwsInstance{
 		session: sess,
 		ID:      *inst.InstanceId,
 		data:    inst,
-
-		Public: publicIP,
+		Public:  publicIP,
 	}
+
 	var err error
 	ai.ConnectIP, err = ai.IP(publicIP)
 	if err != nil {

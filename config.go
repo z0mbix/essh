@@ -22,10 +22,9 @@ type ESSHConfig struct {
 	Region          string
 	ConnectPublicIP bool
 	Debug           bool
+	SearchMode      SearchMode
 
-	SearchMode SearchMode
-
-	//Search value will either be a instance id or tag, check SearchMode to find out what
+	// Search value will either be a instance id or tag, check SearchMode to find out what
 	SearchValue  string
 	sshExtraArgs []string
 }
@@ -40,7 +39,6 @@ func defaultConfig() *ESSHConfig {
 
 func getESSHConfig() (*ESSHConfig, error) {
 	config := defaultConfig()
-
 	userName := flag.StringP("username", "u", "ec2-user", "UNIX user name")
 	region := flag.StringP("region", "r", "", "AWS Region")
 	usePublicIP := flag.BoolP("use-public-ip", "p", false, "Use the public ip instead of the private ip address")
@@ -80,7 +78,7 @@ func getESSHConfig() (*ESSHConfig, error) {
 
 	nargs := flag.NArg()
 
-	//do we have extra flags denoted by a --
+	// Do we have extra flags denoted by a --
 	lastDashAt := flag.CommandLine.ArgsLenAtDash()
 
 	if lastDashAt != -1 && lastDashAt > 1 {
@@ -100,7 +98,6 @@ func getESSHConfig() (*ESSHConfig, error) {
 		}
 	} else if nargs > 1 && lastDashAt != 0 {
 		return nil, errors.New("only specifiy an instance id or a tag, if a tag has a space, wrap in double quotes")
-
 	} else {
 		config.SearchMode = SearchModeMenu
 	}

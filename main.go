@@ -43,12 +43,10 @@ func main() {
 	if config.SearchMode == SearchModeTag {
 		log.Debugf("using Name tag %s to find instance id", config.SearchValue)
 
-		//TODO: change this to return more than one result, then show a menu for selection
 		reservations, err = getInstanceFromNameTag(sess, config.SearchValue)
 		if err != nil {
 			log.Fatal(err)
 		}
-		// log.Debugf("found instance id: %s", instanceID)
 
 	} else if config.SearchMode == SearchModeInst {
 		reservations, err = getInstanceFromID(sess, config.SearchValue)
@@ -73,7 +71,6 @@ func main() {
 			log.Fatalf("could not get instance/session: %s", err)
 		}
 	} else { //Menu Choices
-
 		instances := []AwsInstance{}
 		for rIdx := range reservations {
 			for _, inst := range reservations[rIdx].Instances {
@@ -81,9 +78,7 @@ func main() {
 				if err != nil {
 					log.Fatalf("could not get instance/session: %s", err)
 				}
-
 				instances = append(instances, *i)
-
 			}
 		}
 		instConnect, err = showMenu(instances)

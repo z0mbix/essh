@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/manifoldco/promptui"
@@ -12,21 +11,18 @@ func showMenu(instances []AwsInstance) (*AwsInstance, error) {
 		sInst := instances[index]
 		name := sInst.NameTag
 		input := i
-		return strings.Contains(name, input) || strings.Contains(sInst.ID, input)
+		return strings.Contains(name, input) || strings.Contains(sInst.ID, input) || strings.Contains(sInst.ConnectIP, input)
 	}
 
 	templates := &promptui.SelectTemplates{
-		Label:    "{{ . }}?",
-		Active:   "» {{ .NameTag | yellow }} {{ .ID | green }} ({{ .ConnectIP | red }})",
-		Inactive: "  {{ .NameTag }} {{ .ID | cyan }} ({{ .ConnectIP }})",
-		Selected: "{{ .NameTag | green }} {{ .ID | red }}",
-		Details: `
---------- Instances ----------
-{{ .NameTag | yellow }} {{ .ID | green }} ({{ .ConnectIP | red }})`,
+		Label:    `{{ . }}`,
+		Active:   `{{ "»" | magenta }} {{ .NameTag | yellow }} {{ .ID | green }} ({{ .ConnectIP | red }})`,
+		Inactive: `  {{ .NameTag }} {{ .ID | cyan }} ({{ .ConnectIP }})`,
+		Selected: `{{ .NameTag | green }} {{ .ID | red }}`,
 	}
 
 	prompt := promptui.Select{
-		Label:     "Select an Instance",
+		Label:     "Select an instance:",
 		Items:     instances,
 		Templates: templates,
 		Size:      10,
@@ -36,7 +32,7 @@ func showMenu(instances []AwsInstance) (*AwsInstance, error) {
 	i, _, err := prompt.Run()
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to do menu things, err:%s", err)
+		return nil, err
 	}
 
 	return &instances[i], nil
