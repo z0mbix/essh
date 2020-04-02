@@ -1,4 +1,4 @@
-package main
+package config
 
 // func TestTagDoubleStringWithAdditionalFlags(t *testing.T) {
 // 	// --debug -r ap-southeast-1 -p server1 ss -- -A -4 uptime

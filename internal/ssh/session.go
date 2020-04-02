@@ -1,8 +1,12 @@
 package ssh
 
 import (
+	log "github.com/sirupsen/logrus"
+	"github.com/z0mbix/essh/internal/aws"
+	"github.com/z0mbix/essh/internal/config"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 // Session wraps all ssh actions
@@ -31,8 +35,14 @@ func NewSession(sessionID string) (*Session, error) {
 	return &Session{KeyPair: keypair, Agent: agent}, nil
 }
 
-// Connect executes ssh command with a given args
-func (s *Session) Connect(args []string) error {
+// Connect executes ssh command to the given instance with args passed to the command line
+func (s *Session) Connect(instance *aws.Instance, args []string) error {
+	if err := instance.SendPublicKey(config.UserName, string(s.KeyPair.PublicKey)); err != nil {
+		return err
+	}
+
+	log.Printf("running command: ssh %s", strings.Join(args[:], " "))
+
 	cmd := exec.Command("ssh", args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin
