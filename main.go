@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/z0mbix/essh/internal/ssh"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -94,18 +95,8 @@ func main() {
 		log.Fatalf("could not find instance ip address: %s", err)
 	}
 
-	sshKeyPair, err := NewSSHKeyPair(2048)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	sshAgent, err := NewSSHAgent()
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	comment := fmt.Sprintf("%s:%s", config.UserName, instConnect.ID)
-	err = sshAgent.addKey(sshKeyPair.private, comment)
+	session, err := ssh.NewSession(comment)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -116,13 +107,13 @@ func main() {
 	log.Debugf("host: %s", sshHost)
 
 	log.Debug("pushing public key to instance")
-	err = instConnect.sendPublicKey(config.UserName, string(sshKeyPair.public))
+	err = instConnect.sendPublicKey(config.UserName, string(session.KeyPair.PublicKey))
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	log.Printf("running command: ssh %s", strings.Join(sshArgs[:], " "))
-	err = sshConnect(sshArgs)
+	err = session.Connect(sshArgs)
 	if err != nil {
 		log.Fatal(err)
 	}
