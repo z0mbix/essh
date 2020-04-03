@@ -3,6 +3,7 @@ package aws
 import (
 	"errors"
 	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/davecgh/go-spew/spew"
@@ -33,7 +34,7 @@ func getInstanceFromNameTag(sess *Session, name string) ([]*ec2.Reservation, err
 			{
 				Name: aws.String("tag:Name"),
 				Values: []*string{
-					aws.String(name + "*"),
+					aws.String(name),
 				},
 			},
 			{
@@ -51,7 +52,7 @@ func getInstanceFromNameTag(sess *Session, name string) ([]*ec2.Reservation, err
 	}
 
 	if instanceData.Reservations == nil {
-		*(input.Filters[0].Values[0]) = *(input.Filters[0].Values[0]) + "*"
+		*(input.Filters[0].Values[0]) = "*" + *(input.Filters[0].Values[0]) + "*"
 
 		log.Debug(spew.Sdump(input))
 

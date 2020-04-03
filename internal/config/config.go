@@ -2,13 +2,15 @@ package config
 
 import (
 	"errors"
+	"os"
+	"strings"
+
 	"github.com/davecgh/go-spew/spew"
 	log "github.com/sirupsen/logrus"
 	flag "github.com/spf13/pflag"
-	"os"
-	"strings"
 )
 
+// SearchModeType is the type of instance search to perform
 type SearchModeType int
 
 const (
@@ -24,7 +26,7 @@ var (
 	Debug           bool
 	SearchMode      SearchModeType
 
-	// Search value will either be a instance id or tag, check SearchMode to find out what
+	// SearchValue will either be a instance id or tag, check SearchMode to find out what
 	SearchValue string
 	ExtraArgs   []string
 
