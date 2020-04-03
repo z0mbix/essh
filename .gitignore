@@ -1,3 +1,6 @@
 essh
 .envrc
 .idea/
+.vim/
+.vscode/
+dist/
