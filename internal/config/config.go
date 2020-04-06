@@ -25,6 +25,7 @@ var (
 	ConnectPublicIP bool
 	Debug           bool
 	SearchMode      SearchModeType
+	ShowVersion     bool
 
 	// SearchValue will either be a instance id or tag, check SearchMode to find out what
 	SearchValue string
@@ -40,6 +41,7 @@ func init() {
 	flag.StringVarP(&UserName, "username", "u", "ec2-user", "UNIX user name")
 	flag.BoolVarP(&Debug, "debug", "d", false, "Enable debug logging")
 	flag.BoolVarP(&ConnectPublicIP, "use-public-ip", "p", false, "Use the public ip instead of the private ip address")
+	flag.BoolVarP(&ShowVersion, "version", "v", false, "Show version")
 
 	flag.Parse()
 

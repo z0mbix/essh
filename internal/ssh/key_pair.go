@@ -3,9 +3,9 @@ package ssh
 import (
 	"crypto/rand"
 	"crypto/rsa"
+
 	ext_ssh "golang.org/x/crypto/ssh"
 )
-
 
 // KeyPair A SSH Key
 type KeyPair struct {

@@ -3,10 +3,11 @@ package ssh
 import (
 	"crypto/rsa"
 	"fmt"
-	log "github.com/sirupsen/logrus"
-	"golang.org/x/crypto/ssh/agent"
 	"net"
 	"os"
+
+	log "github.com/sirupsen/logrus"
+	"golang.org/x/crypto/ssh/agent"
 )
 
 // Agent is an SSH agent

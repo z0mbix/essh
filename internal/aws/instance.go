@@ -2,6 +2,7 @@ package aws
 
 import (
 	"errors"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -20,6 +21,7 @@ type Instance struct {
 	ConnectIP string
 	NameTag   string //TODO: add name tag
 }
+
 // NewInstance returns a new AWS instance
 func NewInstance(sess *Session, inst *ec2.Instance, publicIP bool) (*Instance, error) {
 	ai := Instance{
@@ -106,4 +108,3 @@ func (a *Instance) SendPublicKey(user, publicKey string) error {
 
 	return nil
 }
-

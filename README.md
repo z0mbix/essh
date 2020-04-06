@@ -29,6 +29,7 @@ Usage of essh:
   -r, --region string     AWS Region
   -p, --use-public-ip     Use the public ip instead of the private ip address
   -u, --username string   UNIX user name (default "ec2-user")
+  -v, --version           Show version
 pflag: help requested
 ```
 
@@ -78,7 +79,7 @@ Connect to an instance on it's private IP:
 
 ```
 $ essh i-03faf0d7dd3ab737a
-INFO running command: ssh -l ec2-user 10.200.3.25
+running command: ssh -l ec2-user 10.200.3.25
 Last login: Mon Mar 16 22:49:14 2020 from ip-10-200-42-219.eu-west-1.compute.internal
 
        __|  __|_  )
@@ -95,7 +96,7 @@ Connect to the instance named "prod-web1" on its public ip address and run `upti
 
 ```
 $ essh -p prod-web1 -- uptime
-INFO running command: ssh -l ec2-user 52.51.41.123 uptime
+running command: ssh -l ec2-user 52.51.41.123 uptime
  16:42:42 up 16 min,  0 users,  load average: 0.13, 0.04, 0.01
 ```
 
@@ -136,7 +137,7 @@ DEBUG
 DEBUG host: 34.245.6.105
 DEBUG adding key to agent
 DEBUG pushing public key to instance
-INFO running command: ssh -l ec2-user 34.245.6.105
+running command: ssh -l ec2-user 34.245.6.105
 Last login: Fri Apr  3 21:40:35 2020 from 90.199.173.2
 
        __|  __|_  )

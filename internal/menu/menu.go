@@ -3,13 +3,13 @@ package menu
 import (
 	"errors"
 	"fmt"
+	"strings"
+
 	"github.com/z0mbix/essh/internal/aws"
 	"github.com/z0mbix/essh/internal/config"
-	"strings"
 
 	"github.com/manifoldco/promptui"
 )
-
 
 func GetInstance(sess *aws.Session) (*aws.Instance, error) {
 	var instances []aws.Instance

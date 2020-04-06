@@ -1,12 +1,13 @@
 package ssh
 
 import (
-	log "github.com/sirupsen/logrus"
-	"github.com/z0mbix/essh/internal/aws"
-	"github.com/z0mbix/essh/internal/config"
+	"fmt"
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/z0mbix/essh/internal/aws"
+	"github.com/z0mbix/essh/internal/config"
 )
 
 // Session wraps all ssh actions
@@ -41,7 +42,7 @@ func (s *Session) Connect(instance *aws.Instance, args []string) error {
 		return err
 	}
 
-	log.Printf("running command: ssh %s", strings.Join(args[:], " "))
+	fmt.Printf("running command: ssh %s\n", strings.Join(args[:], " "))
 
 	cmd := exec.Command("ssh", args...)
 	cmd.Stdout = os.Stdout

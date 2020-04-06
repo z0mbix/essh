@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"os"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/z0mbix/essh/internal/aws"
 	"github.com/z0mbix/essh/internal/config"
@@ -9,7 +11,16 @@ import (
 	"github.com/z0mbix/essh/internal/ssh"
 )
 
+var (
+	version = "dev"
+)
+
 func main() {
+	if config.ShowVersion {
+		fmt.Println(version)
+		os.Exit(0)
+	}
+
 	sess, err := aws.NewSession(config.Region)
 	if err != nil {
 		log.Fatalf("could not get instance/session: %s", err)
