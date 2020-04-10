@@ -20,6 +20,10 @@ As `essh` uses AWS APIs, you will need you have valid credentials configured. If
 You should set the region with the `-r`/`--region` flag, or by setting the environment variable `AWS_DEFAULT_REGION` or `AWS_REGION`.
 
 
+## Demo
+
+[![asciicast](https://asciinema.org/a/318394.svg)](https://asciinema.org/a/318394?autoplay=1)
+
 ## Usage
 
 ```
