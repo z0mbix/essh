@@ -3,8 +3,10 @@ package menu
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/z0mbix/essh/internal/aws"
 	"github.com/z0mbix/essh/internal/config"
 
@@ -26,14 +28,20 @@ func GetInstance(sess *aws.Session) (*aws.Instance, error) {
 	for rIdx := range reservations {
 		for _, inst := range reservations[rIdx].Instances {
 			i, err := aws.NewInstance(sess, inst, config.ConnectPublicIP)
-			if err != nil {
-				return nil, fmt.Errorf("could not get instance/session: %s", err)
+			if err == nil {
+				instances = append(instances, *i)
+			} else {
+				log.Debug("could not find (public: %s) ip for instance: %s", strconv.FormatBool(config.ConnectPublicIP), inst.InstanceId)
 			}
-			instances = append(instances, *i)
 		}
 	}
+
 	if len(instances) == 1 {
 		return &instances[0], nil
+	}
+
+	if len(instances) == 0 {
+		return nil, fmt.Errorf("no instances found")
 	}
 
 	return show(instances)
