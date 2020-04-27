@@ -27,11 +27,11 @@ var (
 	SearchMode      SearchModeType
 	ShowVersion     bool
 
-	// SearchValue will either be a instance id or tag, check SearchMode to find out what
+	// SearchValue will either be an instance id or a tag. Check SearchMode to find out which
 	SearchValue string
 	ExtraArgs   []string
 
-	InvalidRegionErr = errors.New("count not find your AWS region from either -r or env vars AWS_REGION, AWS_DEFAULT_REGION")
+	InvalidRegionErr = errors.New("could not find your AWS region from either -r or environment variables AWS_REGION, AWS_DEFAULT_REGION")
 	InvalidArgsErr   = errors.New("only specify an instance id or a tag, if a tag has a space, wrap in double quotes")
 )
 
@@ -57,6 +57,9 @@ func init() {
 	}
 
 	Region = configureRegion(*region)
+	if Region == "" {
+		log.Fatal(InvalidRegionErr)
+	}
 
 	if Debug {
 		log.Debug("All cmd line args passed in")
@@ -109,5 +112,5 @@ func configureRegion(arg string) string {
 		return region
 	}
 
-	return "eu-west-1"
+	return ""
 }
