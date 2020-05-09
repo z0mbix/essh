@@ -10,7 +10,7 @@ stop-instance: ## Stop test instance
 instance-status: ## Get test instance status
 	@aws ec2 describe-instances \
 		--output json \
-		--instance-id $(AWS_INSTANCE_ID)
+		--instance-id $(AWS_INSTANCE_ID) \
 		| jq -rC '.Reservations[0].Instances[0].State.Name'
 
 help: ## See all the Makefile targets
