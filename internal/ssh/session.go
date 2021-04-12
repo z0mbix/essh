@@ -1,10 +1,11 @@
 package ssh
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/apex/log"
 
 	"github.com/z0mbix/essh/internal/aws"
 	"github.com/z0mbix/essh/internal/config"
@@ -18,18 +19,20 @@ type Session struct {
 
 // NewSession creates a new ssh session with a new
 // ssh keypair created and put into the ssh agent
-func NewSession(sessionID string) (*Session, error) {
+func NewSession(sessionID string, timeout uint32) (*Session, error) {
 	keypair, err := NewKeyPair(2048)
 	if err != nil {
 		return nil, err
 	}
 
+	log.Debug("creating new ssh agent connection")
 	agent, err := NewAgent()
 	if err != nil {
 		return nil, err
 	}
 
-	if err = agent.addKey(keypair.PrivateKey, sessionID); err != nil {
+	log.Debug("adding private key to ssh agent")
+	if err = agent.addKey(keypair.PrivateKey, sessionID, timeout); err != nil {
 		return nil, err
 	}
 
@@ -42,7 +45,7 @@ func (s *Session) Connect(instance *aws.Instance, args []string) error {
 		return err
 	}
 
-	fmt.Printf("running command: ssh %s\n", strings.Join(args[:], " "))
+	log.Infof("running command: ssh %s\n", strings.Join(args[:], " "))
 
 	cmd := exec.Command("ssh", args...)
 	cmd.Stdout = os.Stdout

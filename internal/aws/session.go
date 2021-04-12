@@ -3,10 +3,10 @@ package aws
 import (
 	"errors"
 
+	"github.com/apex/log"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	log "github.com/sirupsen/logrus"
 	"github.com/z0mbix/essh/internal/config"
 )
 
@@ -18,8 +18,12 @@ type Session struct {
 
 // NewSession A new AWS Session
 func NewSession(region string) (*Session, error) {
-	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String(region),
+	sess, err := session.NewSessionWithOptions(session.Options{
+		SharedConfigState: session.SharedConfigEnable,
+		Config: aws.Config{
+			CredentialsChainVerboseErrors: aws.Bool(true),
+			Region:                        aws.String(region),
+		},
 	})
 	if err != nil {
 		return nil, err

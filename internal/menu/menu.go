@@ -6,11 +6,11 @@ import (
 	"strconv"
 	"strings"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/apex/log"
+	"github.com/manifoldco/promptui"
+
 	"github.com/z0mbix/essh/internal/aws"
 	"github.com/z0mbix/essh/internal/config"
-
-	"github.com/manifoldco/promptui"
 )
 
 func GetInstance(sess *aws.Session) (*aws.Instance, error) {
@@ -31,7 +31,7 @@ func GetInstance(sess *aws.Session) (*aws.Instance, error) {
 			if err == nil {
 				instances = append(instances, *i)
 			} else {
-				log.Debug("could not find (public: %s) ip for instance: %s", strconv.FormatBool(config.ConnectPublicIP), inst.InstanceId)
+				log.Debugf("could not find (public: %s) ip for instance: %s", strconv.FormatBool(config.ConnectPublicIP), inst.InstanceId)
 			}
 		}
 	}
@@ -46,6 +46,7 @@ func GetInstance(sess *aws.Session) (*aws.Instance, error) {
 
 	return show(instances)
 }
+
 func show(instances []aws.Instance) (*aws.Instance, error) {
 	searcher := func(i string, index int) bool {
 		sInst := instances[index]

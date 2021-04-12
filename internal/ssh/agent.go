@@ -6,7 +6,7 @@ import (
 	"net"
 	"os"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/apex/log"
 	"golang.org/x/crypto/ssh/agent"
 )
 
@@ -20,27 +20,26 @@ func NewAgent() (*Agent, error) {
 	socket := os.Getenv("SSH_AUTH_SOCK")
 	connection, err := net.Dial("unix", socket)
 	if err != nil {
-		log.Fatalf("failed to open SSH_AUTH_SOCK: %v", err)
+		return nil, fmt.Errorf("failed to open SSH_AUTH_SOCK: %s", err)
 	}
 	return &Agent{
 		conn: connection,
 	}, nil
 }
 
-func (s Agent) addKey(key *rsa.PrivateKey, comment string) error {
-	log.Debug("adding key to agent")
+func (s Agent) addKey(key *rsa.PrivateKey, comment string, timeout uint32) error {
+	log.Debugf("adding key to agent for %d seconds", timeout)
 	agentClient := agent.NewClient(s.conn)
 	tmpKey := agent.AddedKey{
 		PrivateKey:       key,
 		Comment:          fmt.Sprintf("essh:%s", comment),
-		LifetimeSecs:     10,
+		LifetimeSecs:     timeout,
 		ConfirmBeforeUse: false,
 	}
 
 	err := agentClient.Add(tmpKey)
 	if err != nil {
-		log.Fatal("could not add key to ssh agent")
-		return err
+		return fmt.Errorf("could not add key to ssh agent: %s", err)
 	}
 
 	return nil

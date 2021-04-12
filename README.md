@@ -8,7 +8,7 @@ SSH to an EC2 instance using an in memory, ephemeral ssh key and EC2 instance co
 `essh` does the following:
 
 - Generates a one time RSA ssh keypair in memory
-- Adds the private key to you ssh agent (for a few seconds)
+- Adds the private key to your ssh agent define by `SSH_AUTH_SOCK` (for a configurable number of seconds)
 - Pushes the public key to the instance using [ec2-instance connect](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Connect-using-EC2-Instance-Connect.html)
 - `ssh` to the instance using the private IP address (public IP can be used with `-p`), using user `ec2-user` by default
 
@@ -26,62 +26,74 @@ You should set the region with the `-r`/`--region` flag, or by setting the envir
 
 ## Usage
 
-```
+```shell
 $ essh --help
 Usage of essh:
   -d, --debug             Enable debug logging
+  -t, --key-ttl uint32    How long the private key will live in the ssh-agent in seconds (default 10)
   -r, --region string     AWS Region
   -p, --use-public-ip     Use the public ip instead of the private ip address
   -u, --username string   UNIX user name (default "ec2-user")
   -v, --version           Show version
-pflag: help requested
 ```
 
 Connect to an instance's private IP with ssh as user `ec2-user` (the default):
 
-```
+```shell
 $ essh i-02fab0d7dd3ab737b
 ```
 
 Connect to an instance's public IP with ssh as user `ec2-user`:
 
-```
+```shell
 $ essh -p i-02fab0d7dd3ab737b
 ```
 
 Connect as user `ubuntu` passing the flags `-A`, `-4` and the command `uptime` to the ssh command:
 
-```
+```shell
 $ essh -u ubuntu i-02fab0d7dd3ab737b -- -A -4 uptime
 ```
 
-Connect to an instance by it's full name tag:
+Connect to an instance by its full name tag:
 
-```
+```shell
 $ essh prod-web1
 ```
 
 Display a menu of instances that match a partial tag:
 
-```
+```shell
 $ essh gitlab
 ```
 
 Display all running instances in a region:
 
-```
+```shell
 $ essh
 ```
-
 
 You can use `/` to search the list of instances.
 
 
-## Examples
+## Changing the default UNIX user
 
-Connect to an instance on it's private IP:
+If you use a different operating system that does not use the username `ec2-user`, you can set a different default username.
 
+For example, if you use Ubuntu, you can set the environment variable:
+
+```shell
+$ export ESSH_DEFAULT_USER=ubuntu
 ```
+
+From then on, you can just omit the `-u ubuntu` flag to log in as the `ubuntu` user:
+
+
+## Usage Examples
+
+Connect to an instance on its private IP:
+
+```shell
 $ essh i-03faf0d7dd3ab737a
 running command: ssh -l ec2-user 10.200.3.25
 Last login: Mon Mar 16 22:49:14 2020 from ip-10-200-42-219.eu-west-1.compute.internal
@@ -98,7 +110,7 @@ Run "sudo yum update" to apply all updates.
 
 Connect to the instance named "prod-web1" on its public ip address and run `uptime`:
 
-```
+```shell
 $ essh -p prod-web1 -- uptime
 running command: ssh -l ec2-user 52.51.41.123 uptime
  16:42:42 up 16 min,  0 users,  load average: 0.13, 0.04, 0.01
@@ -106,7 +118,7 @@ running command: ssh -l ec2-user 52.51.41.123 uptime
 
 Connect to a host named "gitlab" if it exists and is running, or show a menu of instances with "gitlab" in their name:
 
-```
+```shell
 $ essh gitlab
 Use the arrow keys to navigate: ↓ ↑ → ←  and / toggles search
 Select an instance:
@@ -114,9 +126,9 @@ Select an instance:
     fi-gitlab-runner-hosted-dev i-0191ea736eca6db2f (10.100.10.29)
 ```
 
-If you don't know which instance to connect to, run without specifing a tag or instance id:
+If you don't know which instance to connect to, run without specifying a tag or instance id:
 
-```
+```shell
 $ essh
 Use the arrow keys to navigate: ↓ ↑ → ←  and / toggles search
 Select an instance:
@@ -132,7 +144,7 @@ Select an instance:
 
 Run with debug logging enabled:
 
-```
+```shell
 $ essh -d -p i-0cc2be02456a7180c
 DEBUG Setting region from AWS_DEFAULT_REGION env: eu-west-1
 DEBUG All cmd line args passed in
@@ -157,7 +169,7 @@ Run "sudo yum update" to apply all updates.
 
 ## Build
 
-```
+```shell
 $ go build
 ```
 
@@ -168,11 +180,12 @@ Put the resulting `essh` binary somewhere in your `$PATH`.
 
 To create a new release, just tag the repo and run goreleaser:
 
-```
+```shell
 $ git tag -a [tag] -m "Release message"
 $ git push origin [tag]
 $ goreleaser --rm-dist
 ```
+
 
 ## TODO
 

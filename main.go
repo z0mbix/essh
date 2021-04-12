@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/apex/log"
 	"github.com/z0mbix/essh/internal/aws"
 	"github.com/z0mbix/essh/internal/config"
 	"github.com/z0mbix/essh/internal/menu"
@@ -28,14 +28,14 @@ func main() {
 
 	instance, err := menu.GetInstance(sess)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("%s", err)
 	}
 	log.Debugf("host: %s", instance.ConnectIP)
 
 	comment := fmt.Sprintf("%s:%s", config.UserName, instance.ID)
-	essh, err := ssh.NewSession(comment)
+	essh, err := ssh.NewSession(comment, config.PrivateKeyLifetime)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("%s", err)
 	}
 
 	sshArgs := []string{"-l", config.UserName}
@@ -44,6 +44,6 @@ func main() {
 
 	err = essh.Connect(instance, sshArgs)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(err.Error())
 	}
 }

@@ -4,3 +4,4 @@ essh
 .vim/
 .vscode/
 dist/
+instance-example-response.json

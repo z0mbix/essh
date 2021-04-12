@@ -4,10 +4,9 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/apex/log"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/davecgh/go-spew/spew"
-	log "github.com/sirupsen/logrus"
 )
 
 func _getInstances(sess *Session, instInput *ec2.DescribeInstancesInput) (*ec2.DescribeInstancesOutput, error) {
@@ -24,6 +23,9 @@ func getInstanceFromID(sess *Session, id string) ([]*ec2.Reservation, error) {
 	}
 
 	a, err := _getInstances(sess, input)
+	if err != nil {
+		return nil, errors.New(err.Error())
+	}
 	return a.Reservations, err
 }
 
@@ -54,7 +56,7 @@ func getInstanceFromNameTag(sess *Session, name string) ([]*ec2.Reservation, err
 	if instanceData.Reservations == nil {
 		*(input.Filters[0].Values[0]) = "*" + *(input.Filters[0].Values[0]) + "*"
 
-		log.Debug(spew.Sdump(input))
+		log.Debugf("%s", input)
 
 		instanceData, err = _getInstances(sess, input)
 

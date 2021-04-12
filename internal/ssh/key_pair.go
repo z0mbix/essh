@@ -4,7 +4,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 
-	ext_ssh "golang.org/x/crypto/ssh"
+	extssh "golang.org/x/crypto/ssh"
 )
 
 // KeyPair A SSH Key
@@ -13,7 +13,7 @@ type KeyPair struct {
 	PublicKey  []byte
 }
 
-// NewKeyPair Returns  new SSH Keypain
+// NewKeyPair Returns a new RSA SSH Keypair
 func NewKeyPair(keySize int) (*KeyPair, error) {
 	// generate private RSA key - EC2 instance connect only supports RSA
 	rsaKey, err := rsa.GenerateKey(rand.Reader, keySize)
@@ -22,12 +22,12 @@ func NewKeyPair(keySize int) (*KeyPair, error) {
 	}
 
 	// generate public key
-	publicKey, err := ext_ssh.NewPublicKey(&rsaKey.PublicKey)
+	publicKey, err := extssh.NewPublicKey(&rsaKey.PublicKey)
 	if err != nil {
 		return nil, err
 	}
 
-	publicKeySerialized := ext_ssh.MarshalAuthorizedKey(publicKey)
+	publicKeySerialized := extssh.MarshalAuthorizedKey(publicKey)
 
 	return &KeyPair{
 		PrivateKey: rsaKey,

@@ -3,11 +3,11 @@ package aws
 import (
 	"errors"
 
+	"github.com/apex/log"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2instanceconnect"
-	log "github.com/sirupsen/logrus"
 )
 
 // AwsInstance An AWS instance
@@ -15,11 +15,11 @@ type Instance struct {
 	session *Session
 	data    *ec2.Instance
 
-	//extracted here for convenience
+	// extracted here for convenience
 	ID        string
 	Public    bool
 	ConnectIP string
-	NameTag   string //TODO: add name tag
+	NameTag   string
 }
 
 // NewInstance returns a new AWS instance
@@ -40,45 +40,46 @@ func NewInstance(sess *Session, inst *ec2.Instance, publicIP bool) (*Instance, e
 	return &ai, nil
 }
 
-func (a *Instance) IP(public bool) (string, error) {
+// IP is the IP address of the instance
+func (i *Instance) IP(public bool) (string, error) {
 	if public {
-		ip, err := a.publicIP()
+		ip, err := i.publicIP()
 		if err != nil {
 			return "", err
 		}
 		return ip, nil
 	}
 
-	ip, err := a.privateIP()
+	ip, err := i.privateIP()
 	if err != nil {
 		return "", err
 	}
 	return ip, nil
 }
 
-func (a *Instance) privateIP() (string, error) {
-	ip := a.data.PrivateIpAddress
+func (i *Instance) privateIP() (string, error) {
+	ip := i.data.PrivateIpAddress
 	if ip == nil {
 		return "", errors.New("could not find private ip")
 	}
 	return *ip, nil
 }
 
-func (a *Instance) publicIP() (string, error) {
-	ip := a.data.PublicIpAddress
+func (i *Instance) publicIP() (string, error) {
+	ip := i.data.PublicIpAddress
 	if ip == nil {
 		return "", errors.New("could not find public ip")
 	}
 	return *ip, nil
 }
 
-func (a *Instance) SendPublicKey(user, publicKey string) error {
+func (i *Instance) SendPublicKey(user, publicKey string) error {
 	log.Debug("pushing public key to instance")
 
-	svc := ec2instanceconnect.New(a.session.session)
+	svc := ec2instanceconnect.New(i.session.session)
 	input := &ec2instanceconnect.SendSSHPublicKeyInput{
-		AvailabilityZone: aws.String(*a.data.Placement.AvailabilityZone),
-		InstanceId:       aws.String(a.ID),
+		AvailabilityZone: aws.String(*i.data.Placement.AvailabilityZone),
+		InstanceId:       aws.String(i.ID),
 		InstanceOSUser:   aws.String(user),
 		SSHPublicKey:     aws.String(publicKey),
 	}
@@ -88,20 +89,20 @@ func (a *Instance) SendPublicKey(user, publicKey string) error {
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			case ec2instanceconnect.ErrCodeAuthException:
-				log.Errorln(ec2instanceconnect.ErrCodeAuthException, aerr.Error())
+				log.Errorf(ec2instanceconnect.ErrCodeAuthException, aerr.Error())
 			case ec2instanceconnect.ErrCodeInvalidArgsException:
-				log.Errorln(ec2instanceconnect.ErrCodeInvalidArgsException, aerr.Error())
+				log.Errorf(ec2instanceconnect.ErrCodeInvalidArgsException, aerr.Error())
 			case ec2instanceconnect.ErrCodeServiceException:
-				log.Errorln(ec2instanceconnect.ErrCodeServiceException, aerr.Error())
+				log.Errorf(ec2instanceconnect.ErrCodeServiceException, aerr.Error())
 			case ec2instanceconnect.ErrCodeThrottlingException:
-				log.Errorln(ec2instanceconnect.ErrCodeThrottlingException, aerr.Error())
+				log.Errorf(ec2instanceconnect.ErrCodeThrottlingException, aerr.Error())
 			case ec2instanceconnect.ErrCodeEC2InstanceNotFoundException:
-				log.Errorln(ec2instanceconnect.ErrCodeEC2InstanceNotFoundException, aerr.Error())
+				log.Errorf(ec2instanceconnect.ErrCodeEC2InstanceNotFoundException, aerr.Error())
 			default:
-				log.Errorln(aerr.Error())
+				log.Errorf(aerr.Error())
 			}
 		} else {
-			log.Errorln(err.Error())
+			log.Errorf(err.Error())
 		}
 		return err
 	}
