@@ -122,8 +122,8 @@ Connect to a host named "gitlab" if it exists and is running, or show a menu of 
 $ essh gitlab
 Use the arrow keys to navigate: ↓ ↑ → ←  and / toggles search
 Select an instance:
-  » fi-gitlab-runner-self-hosted-dev i-05e50f67e9dda4278 (10.100.7.92)
-    fi-gitlab-runner-hosted-dev i-0191ea736eca6db2f (10.100.10.29)
+  » gitlab-runner-self-hosted-dev i-05e50f67e9dda4278 (10.100.7.92)
+    gitlab-runner-hosted-dev i-0191ea736eca6db2f (10.100.10.29)
 ```
 
 If you don't know which instance to connect to, run without specifying a tag or instance id:
@@ -136,10 +136,10 @@ Select an instance:
     eks i-02dbc94c2efe19e68 (10.100.0.67)
     eks i-0907b9bb45af5b43e (10.100.2.252)
     eks i-0d7344c185041ba14 (10.100.4.10)
-    fi-gitlab-runner-self-hosted-dev i-05e50f67e9dda4278 (10.100.7.92)
+    gitlab-runner-self-hosted-dev i-05e50f67e9dda4278 (10.100.7.92)
   » eks i-03623ba03fc2dab6f (10.100.9.64)
     eks i-07f1430c8a05d00a7 (10.100.11.246)
-    fi-gitlab-runner-hosted-dev i-0191ea736eca6db2f (10.100.10.29)
+    gitlab-runner-hosted-dev i-0191ea736eca6db2f (10.100.10.29)
 ```
 
 Run with debug logging enabled:
